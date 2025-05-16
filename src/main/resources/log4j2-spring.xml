@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+    Log4j2 Configuration file for Spring Boot
+    - Customized console patterns
+    - Separate Layout for com.netmarble packages
+    - Logging levels are defined here (not in application.yml)
+-->
+<Configuration status="WARN">
+    <Appenders>
+        <!-- Default console output (standard pattern) -->
+        <Console name="Console" target="SYSTEM_OUT">
+            <PatternLayout pattern="[%d{yyyy-MM-dd HH:mm:ss.SSS}] %-5level %logger{36} - %msg%n"/>
+        </Console>
+
+        <!-- Customized pattern for com.netmarble packages -->
+        <Console name="nmConsole" target="SYSTEM_OUT">
+            <PatternLayout pattern="[%d{yyyy-MM-dd HH:mm:ss.SSS}] %-5level [%t] %c{1}:%L - %msg%n"/>
+        </Console>
+
+        <!-- Shared Rolling File Appender -->
+        <RollingFile name="FileAppender"
+                     fileName="logs/app.log"
+                     filePattern="logs/app-%d{yyyy-MM-dd}.log.gz">
+            <PatternLayout pattern="%highlight{%msg%n}{FATAL=red blink, ERROR=red, WARN=yellow bold, INFO=green, DEBUG=blue, TRACE=gray}"/>
+            <Policies>
+                <TimeBasedTriggeringPolicy interval="1"/>
+            </Policies>
+            <DefaultRolloverStrategy max="30"/>
+        </RollingFile>
+    </Appenders>
+
+    <Loggers>
+        <!-- Spring framework debug logs -->
+        <Logger name="org.springframework" level="debug" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="FileAppender"/>
+        </Logger>
+
+        <!-- Custom application logs -->
+        <Logger name="com.netmarble.tossverification" level="debug" additivity="false">
+            <AppenderRef ref="nmConsole"/>
+            <AppenderRef ref="FileAppender"/>
+        </Logger>
+
+        <!-- Hibernate SQL debug logs -->
+        <Logger name="org.hibernate.SQL" level="debug" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="FileAppender"/>
+        </Logger>
+
+        <!-- Hibernate parameter binding logs -->
+        <Logger name="org.hibernate.type" level="trace" additivity="false">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="FileAppender"/>
+        </Logger>
+
+        <!-- root logger -->
+        <Root level="info">
+            <AppenderRef ref="Console"/>
+            <AppenderRef ref="FileAppender"/>
+        </Root>
+    </Loggers>
+</Configuration>
