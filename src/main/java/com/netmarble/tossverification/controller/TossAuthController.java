@@ -1,6 +1,7 @@
 package com.netmarble.tossverification.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.netmarble.tossverification.service.TossAuthService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.ResponseEntity;
@@ -19,19 +20,19 @@ public class TossAuthController {
         this.tossAuthService = tossAuthService;
     }
 
-    @Operation(summary = "Get all users info", description = "Retrieve all users information from DB")
-    @GetMapping
-    public ResponseEntity<List<UserResultDto>> getAllUsersInfo() {
-        List<UserResultDto> results = tossAuthService.getAllUsersInfo();
-        return ResponseEntity.ok(results);
-    }
+//    @Operation(summary = "Get all users info", description = "Retrieve all users information from DB")
+//    @GetMapping
+//    public ResponseEntity<List<UserResultDto>> getAllUsersInfo() {
+//        List<UserResultDto> results = tossAuthService.getAllUsersInfo();
+//        return ResponseEntity.ok(results);
+//    }
 
-    // 1. API to get Access Token (For Test)
-    @Operation(summary = "Get Access Token(For Test)", description = "Retrieve access token using authorization code")
-    @PostMapping("/token/refresh")
-    public String refreshAccessToken() {
-        return tossAuthService.issueAccessToken();
-    }
+//    // 1. API to get Access Token (For Test)
+//    @Operation(summary = "Get Access Token(For Test)", description = "Retrieve access token using authorization code")
+//    @PostMapping("/token/refresh")
+//    public String refreshAccessToken() {
+//        return tossAuthService.issueAccessToken();
+//    }
 
     // 2. 본인확인 요청
     @PostMapping("/auth/request")
