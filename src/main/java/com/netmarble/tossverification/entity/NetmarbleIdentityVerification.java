@@ -1,13 +1,19 @@
 package com.netmarble.tossverification.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
 @Data
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "tb_netmarble_identity_verification")
 public class NetmarbleIdentityVerification {
 
@@ -15,20 +21,20 @@ public class NetmarbleIdentityVerification {
     @GeneratedValue(strategy = GenerationType.UUID)
     private UUID netmarbleId;
 
-    @Column(name = "verify_type", nullable = false, length = 20) // "KMC", "TOSS"
+    @Column(name = "verify_type", length = 20) // "KMC", "TOSS"
     private String verifyType;
 
-    @Column(name = "verify_seq", nullable = false)
+    @Column(name = "verify_seq")
     private Long verifySeq;
 
     @Column(name = "level")
-    private Integer level;
+    private Integer level = 0;
 
     @Column(name = "birthday", length = 8)
     private String birthday;
 
     @Column(name = "privacy_agreement")
-    private Boolean privacyAgreement;
+    private Boolean privacyAgreement = false;
 
     @Column(name = "name", length = 100)
     private String name;

@@ -1,7 +1,7 @@
 package com.netmarble.tossverification.auth;
 
 import com.netmarble.tossverification.config.TossAuthConstants;
-import com.netmarble.tossverification.dto.TossTokenResponseDto;
+import com.netmarble.tossverification.dto.external.tossverification.TossTokenResponseDto;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -15,7 +15,7 @@ public class TossTokenHolder {
     private final RestTemplate restTemplate;
     private final String clientId = "test_a8e23336d673ca70922b485fe806eb2d"; // Todo : move to properties
     private final String clientSecret = "test_418087247d66da09fda1964dc4734e453c7cf66a7a9e3";
-    private String accessToken;
+    private String accessToken; // Todo : DB에 저장 필요?
     private Instant expiresAt;
 
     public TossTokenHolder(RestTemplate restTemplate) {

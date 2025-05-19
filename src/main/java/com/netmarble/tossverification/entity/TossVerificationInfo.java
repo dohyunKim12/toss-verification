@@ -10,14 +10,12 @@ import java.time.LocalDateTime;
 public class TossVerificationInfo {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "toss_verify_seq")
     private Long tossVerifySeq;
 
-    @MapsId
     @OneToOne
-    @JoinColumns({
-            @JoinColumn(name = "toss_verify_seq", referencedColumnName = "verify_seq")
-    })
+    @JoinColumn(name = "toss_verify_seq", referencedColumnName = "verify_seq")
     private NetmarbleIdentityVerification identityVerification;
 
     @Column(name = "tx_id", length = 100, nullable = false)
