@@ -1,0 +1,34 @@
+@startuml signin
+
+title 본인인증 flow
+
+participant "client" as client
+participant "identity-verification" as identity
+participant "toss app" as tossApp
+participant "toss verification server" as tossVerificationServer
+
+== Toss 인증 ==
+group Toss 인증
+client -> identity: 토스 인증 요청 => POST /api/toss/auth-request
+identity -> tossVerificationServer: 토스 인증 서버로 access token 발급 요청 => POST /token
+tossVerificationServer --> identity: access token 반환
+identity -> tossVerificationServer: 토스 인증 요청 => POST /api/v2/sign/user/auth/id/request (본인확인 요청, case2 : App push)
+tossVerificationServer --> identity: tx_id 반환 (추후 본인인증 상태 / 결과 조회에 사용)
+tossVerificationServer -> tossApp: 인증 요청 푸시 발송 (triggerType: PUSH)
+tossApp -> tossVerificationServer: 전자서명 및 인증 정보 전달
+end
+
+group 인증 상태 조회
+identity -> tossVerificationServer: 인증 상태 조회 API 호출 => POST /api/v2/sign/user/auth/id/status
+tossVerificationServer --> identity: 인증 상태 (REQUESTED | IN_PROGRESS | COMPLETED | EXPIRED)
+alt 인증 상태가 COMPLETED일 때
+    identity -> tossVerificationServer: 본인인증 결과 조회 API 호출 => POST /api/v2/sign/user/auth/id/result
+    tossVerificationServer --> identity: 전자서명 및 인증 결과 반환
+    identity -> identity: 인증 결과 DB 저장
+    identity --> client: 본인인증 결과 응답 전송
+else 인증 상태가 COMPLETED이 아닐 경우
+    note right of identity: 인증이 완료될 때 까지 인증 상태 조회 API polling
+end
+end
+
+@enduml
