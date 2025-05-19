@@ -1,9 +1,11 @@
 package com.netmarble.tossverification.service;
 
 import com.netmarble.tossverification.auth.TossTokenHolder;
+import com.netmarble.tossverification.client.TossVerificationClient;
 import com.netmarble.tossverification.config.TossAuthConstants;
 import com.netmarble.tossverification.dto.external.tossverification.TossVerificationApiResponseDto;
 import com.netmarble.tossverification.dto.request.TossVerificationAppPushRequestDto;
+import com.netmarble.tossverification.dto.response.TossVerificationCheckResponseDto;
 import com.netmarble.tossverification.dto.response.TossVerificationResponseDto;
 import com.netmarble.tossverification.entity.NetmarbleIdentityVerification;
 import com.netmarble.tossverification.entity.TossVerificationInfo;
@@ -15,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.*;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
@@ -22,6 +25,7 @@ import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
 
 
 @Service
@@ -32,6 +36,8 @@ public class TossAuthService {
     private final RestTemplate restTemplate;
 
     private final TossTokenHolder tossTokenHolder;
+
+    private final TossVerificationClient tossVerificationClient;
 
     private final NetmarbleIdentityRepository netmarbleIdentityRepository;
 
@@ -110,15 +116,40 @@ public class TossAuthService {
         }
     }
 
+    @Async("tossAuthCheckPollingExecutor")
+    public CompletableFuture<TossVerificationCheckResponseDto> pollVerificationStatus(String txId) {
+        return CompletableFuture.supplyAsync(() -> {
+            int maxAttempts = 100;
+            int delayMs = 1000;
 
-    // 3. 본인확인 상태조회 서비스 (프론트에서 인증완료 버튼 누르게끔 할 게 아니면, 비동기 polling)
-    // 1) get Access Token
-    // 2) request Toss verification (본인확인 상태조회)
-    // 3) update DB with status
+            for (int i = 0; i < maxAttempts; i++) {
+                try {
+                    String status = tossVerificationClient.checkStatus(txId);
+                    if ("COMPLETED".equals(status)) {
+                        // Return to front-end
+                        LocalDateTime requestedAt = tossAuthRepository.findByTxId(txId)
+                                .orElseThrow(() -> new RuntimeException("Transaction not found with txId: " + txId))
+                                .getRequestedAt();
+                        return new TossVerificationCheckResponseDto(txId, "COMPLETED", requestedAt, null);
+                    }
+                    Thread.sleep(delayMs);
+                } catch (InterruptedException e) {
+                    logger.error("Polling failed for txId: {}", txId, e);
+                    throw new RuntimeException(e);
+                }
+            }
+            logger.error("Polling timed out for txId: {}", txId);
+            throw new RuntimeException("Polling timed out for txId: " + txId);
+        });
 
-    // 4. 본인확인 결과조회 서비스
-    // 1) get Access Token
-    // 2) request Toss verification (본인확인 결과조회)
-    // 3) update DB with status, ci, di, signature
+        // 3. 본인확인 상태조회 서비스 (프론트에서 인증완료 버튼 누르게끔 할 게 아니면, 비동기 polling)
+        // 1) get Access Token
+        // 2) request Toss verification (본인확인 상태조회)
+        // 3) update DB with status
 
+        // 4. 본인확인 결과조회 서비스
+        // 1) get Access Token
+        // 2) request Toss verification (본인확인 결과조회)
+        // 3) update DB with status, ci, di, signature
+    }
 }

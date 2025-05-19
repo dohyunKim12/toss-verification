@@ -15,7 +15,7 @@ CREATE TABLE tb_netmarble_identity_verification (
 
 CREATE TABLE tb_toss_verification_info (
                                            toss_verify_seq     BIGSERIAL PRIMARY KEY,
-                                           tx_id               UUID NOT NULL UNIQUE,
+                                           tx_id               VARCHAR(100) NOT NULL UNIQUE,
                                            ci                  TEXT NOT NULL,
                                            di                  TEXT NOT NULL,
                                            status              VARCHAR(20) NOT NULL,

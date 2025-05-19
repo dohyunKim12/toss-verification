@@ -14,10 +14,6 @@ public class TossVerificationInfo {
     @Column(name = "toss_verify_seq")
     private Long tossVerifySeq;
 
-    @OneToOne
-    @JoinColumn(name = "toss_verify_seq", referencedColumnName = "verify_seq")
-    private NetmarbleIdentityVerification identityVerification;
-
     @Column(name = "tx_id", length = 100, nullable = false)
     private String txId;
 

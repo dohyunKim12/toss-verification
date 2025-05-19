@@ -2,19 +2,28 @@ package com.netmarble.tossverification.controller;
 
 import com.netmarble.tossverification.dto.request.CreateUserDto;
 import com.netmarble.tossverification.dto.request.TossVerificationAppPushRequestDto;
+import com.netmarble.tossverification.dto.response.TossVerificationCheckResponseDto;
 import com.netmarble.tossverification.dto.response.TossVerificationResponseDto;
 import com.netmarble.tossverification.service.TossAuthService;
 import com.netmarble.tossverification.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 @RestController
 @RequestMapping("/api/TossAuth")
 @RequiredArgsConstructor
 @Tag(name = "Toss verification", description = "APIs for verify by Toss cert api")
 public class TossAuthController {
+
+    private final Logger logger = LoggerFactory.getLogger(TossAuthController.class);
 
     private final TossAuthService tossAuthService;
 
@@ -48,6 +57,21 @@ public class TossAuthController {
     public ResponseEntity<TossVerificationResponseDto> requestUserVerification(@RequestBody TossVerificationAppPushRequestDto requestDto) {
         TossVerificationResponseDto response = tossAuthService.requestVerification(requestDto);
         return ResponseEntity.ok(response);
+    }
+
+    // 2. 본인확인 상태 조회
+    @PostMapping("/auth/request/status")
+    public CompletableFuture<ResponseEntity<TossVerificationCheckResponseDto>> getVerificationStatus(@RequestParam("txId") String txId) {
+        CompletableFuture<TossVerificationCheckResponseDto> future = tossAuthService.pollVerificationStatus(txId);
+        return future.orTimeout(180, TimeUnit.SECONDS)
+                .thenApply(ResponseEntity::ok)
+                .exceptionally(ex -> {
+                    logger.error("Polling failed", ex);
+                    return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT).build();
+                });
+
+//        return tossAuthService.pollVerificationStatus(txId)
+//                .thenApply(response -> ResponseEntity.ok(response));
     }
 
 //    // 3. 결과 조회
