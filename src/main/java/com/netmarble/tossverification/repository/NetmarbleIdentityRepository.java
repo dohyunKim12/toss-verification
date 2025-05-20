@@ -7,4 +7,6 @@ import java.util.Optional;
 
 public interface NetmarbleIdentityRepository extends JpaRepository<NetmarbleIdentityVerification, Long> {
     Optional<Object> findByName(String name);
+
+    boolean existsByName(String name);
 }

@@ -17,6 +17,9 @@ spring:
     properties:
       hibernate:
         format_sql: true
+  mvc:
+    async:
+      request-timeout: 180000
 
 server:
   port: 8080

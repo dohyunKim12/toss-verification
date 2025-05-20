@@ -19,6 +19,13 @@ public class UserService {
     private final NetmarbleIdentityRepository netmarbleIdentityRepository;
 
     public String createUser(CreateUserRequestDto dto) {
+        logger.info("Creating user with username: {}", dto.getUsername());
+        // Check if the user already exists
+        if (netmarbleIdentityRepository.existsByName(dto.getUsername())) {
+            logger.error("User with username {} already exists", dto.getUsername());
+            throw new IllegalArgumentException("User already exists");
+        }
+
         NetmarbleIdentityVerification netmarbleIdentityVerification = NetmarbleIdentityVerification.builder()
                 .birthday(dto.getUserBirthday())
                 .name(dto.getUsername())

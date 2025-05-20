@@ -1,19 +1,19 @@
 version: "3.8"
 
 services:
-  postgres-adservice:
+  postgres-tossverification:
     image: postgres:16
-    container_name: adservice-db
+    container_name: tossverification-db
     restart: unless-stopped
     environment:
       POSTGRES_USER: admin
       POSTGRES_PASSWORD: admin
-      POSTGRES_DB: toss-veification
+      POSTGRES_DB: tossverification
     ports:
       - "5432:5432"
     volumes:
-      - postgres_data_toss_verification:/var/lib/postgresql/data
+      - postgres_data_tossverification:/var/lib/postgresql/data
 
 volumes:
-  postgres_data_toss_verification:
+  postgres_data_tossverification:
     driver: local
