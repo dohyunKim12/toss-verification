@@ -1,9 +1,9 @@
 package com.netmarble.tossverification.controller;
 
-import com.netmarble.tossverification.dto.request.CreateUserDto;
-import com.netmarble.tossverification.dto.request.TossVerificationAppPushRequestDto;
-import com.netmarble.tossverification.dto.response.TossVerificationCheckResponseDto;
-import com.netmarble.tossverification.dto.response.TossVerificationResponseDto;
+import com.netmarble.tossverification.dto.internal.request.CreateUserRequestDto;
+import com.netmarble.tossverification.dto.internal.request.TossVerificationAppPushRequestDto;
+import com.netmarble.tossverification.dto.internal.response.TossVerificationCommonResponseDto;
+import com.netmarble.tossverification.dto.internal.response.TossVerificationInitResponseDto;
 import com.netmarble.tossverification.service.TossAuthService;
 import com.netmarble.tossverification.service.UserService;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -39,7 +39,7 @@ public class TossAuthController {
     // User create
     // API to create user (For Test)
     @PostMapping("/user/create")
-    public ResponseEntity<String> createUser(@RequestBody CreateUserDto dto) {
+    public ResponseEntity<String> createUser(@RequestBody CreateUserRequestDto dto) {
         String result = userService.createUser(dto);
         return ResponseEntity.ok(result);
     }
@@ -48,15 +48,15 @@ public class TossAuthController {
 
     // 2. 본인확인 요청 (by app push)
     @PostMapping("/auth/request/app-push")
-    public ResponseEntity<TossVerificationResponseDto> requestUserVerification(@RequestBody TossVerificationAppPushRequestDto requestDto) {
-        TossVerificationResponseDto response = tossAuthService.requestVerification(requestDto);
+    public ResponseEntity<TossVerificationInitResponseDto> requestUserVerification(@RequestBody TossVerificationAppPushRequestDto requestDto) {
+        TossVerificationInitResponseDto response = tossAuthService.requestVerification(requestDto);
         return ResponseEntity.ok(response);
     }
 
     // 2. 본인확인 상태 조회
     @PostMapping("/auth/request/status")
-    public CompletableFuture<ResponseEntity<TossVerificationCheckResponseDto>> getVerificationStatus(@RequestParam("txId") String txId) {
-        CompletableFuture<TossVerificationCheckResponseDto> future = tossAuthService.pollVerificationStatus(txId);
+    public CompletableFuture<ResponseEntity<TossVerificationCommonResponseDto>> getVerificationStatus(@RequestParam("txId") String txId) {
+        CompletableFuture<TossVerificationCommonResponseDto> future = tossAuthService.pollVerificationStatus(txId);
         return future.orTimeout(180, TimeUnit.SECONDS)
                 .thenApply(ResponseEntity::ok)
                 .exceptionally(ex -> {
@@ -67,8 +67,8 @@ public class TossAuthController {
 
     // 3. 결과 조회
     @GetMapping("/auth/result")
-    public ResponseEntity<TossVerificationCheckResponseDto> getVerificationResult(@RequestParam("txId") String txId) {
-        TossVerificationCheckResponseDto result = tossAuthService.getVerificationResult(txId);
+    public ResponseEntity<TossVerificationCommonResponseDto> getVerificationResult(@RequestParam("txId") String txId) {
+        TossVerificationCommonResponseDto result = tossAuthService.getVerificationResult(txId);
         return ResponseEntity.ok(result);
     }
 }

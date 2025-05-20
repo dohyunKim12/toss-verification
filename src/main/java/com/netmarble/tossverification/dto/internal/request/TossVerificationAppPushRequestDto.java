@@ -1,4 +1,4 @@
-package com.netmarble.tossverification.dto.request;
+package com.netmarble.tossverification.dto.internal.request;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;

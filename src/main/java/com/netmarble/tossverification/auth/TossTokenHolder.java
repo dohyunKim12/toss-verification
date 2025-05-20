@@ -1,7 +1,7 @@
 package com.netmarble.tossverification.auth;
 
 import com.netmarble.tossverification.config.TossAuthConstants;
-import com.netmarble.tossverification.dto.external.tossverification.TossTokenResponseDto;
+import com.netmarble.tossverification.dto.external.toss.TossTokenInDto;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -45,14 +45,14 @@ public class TossTokenHolder {
 
         HttpEntity<String> requestEntity = new HttpEntity<>(body, headers);
 
-        ResponseEntity<TossTokenResponseDto> response = restTemplate.exchange(
+        ResponseEntity<TossTokenInDto> response = restTemplate.exchange(
                 TossAuthConstants.TOSS_TOKEN_URL,
                 HttpMethod.POST,
                 requestEntity,
-                TossTokenResponseDto.class
+                TossTokenInDto.class
         );
 
-        TossTokenResponseDto tokenResponse = response.getBody();
+        TossTokenInDto tokenResponse = response.getBody();
         if (tokenResponse != null) {
             this.accessToken = tokenResponse.getAccessToken();
             this.expiresAt = Instant.now().plusSeconds(tokenResponse.getExpiresIn());

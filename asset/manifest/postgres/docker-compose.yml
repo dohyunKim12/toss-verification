@@ -15,5 +15,5 @@ services:
       - postgres_data_toss_verification:/var/lib/postgresql/data
 
 volumes:
-  postgres_data_adservice:
+  postgres_data_toss_verification:
     driver: local

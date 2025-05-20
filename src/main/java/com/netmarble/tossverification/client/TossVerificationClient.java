@@ -2,9 +2,7 @@ package com.netmarble.tossverification.client;
 
 import com.netmarble.tossverification.auth.TossTokenHolder;
 import com.netmarble.tossverification.config.TossAuthConstants;
-import com.netmarble.tossverification.dto.external.tossverification.TossVerificationApiResponseDto;
-import com.netmarble.tossverification.dto.external.tossverification.TossVerificationCheckApiResponseDto;
-import com.netmarble.tossverification.dto.external.tossverification.TossVerificationCheckApiSuccessDto;
+import com.netmarble.tossverification.dto.external.toss.TossVerificationCheckApiInDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.*;
 import org.springframework.stereotype.Component;
@@ -30,14 +28,14 @@ public class TossVerificationClient {
 
         HttpEntity<Map<String, String>> request = new HttpEntity<>(requestBody, headers);
 
-        ResponseEntity<TossVerificationCheckApiResponseDto> response = restTemplate.exchange(
+        ResponseEntity<TossVerificationCheckApiInDto> response = restTemplate.exchange(
                 TossAuthConstants.TOSS_CERT_DEFAULT_URL + "/sign/user/auth/id/status",
                 HttpMethod.POST,
                 request,
-                TossVerificationCheckApiResponseDto.class
+                TossVerificationCheckApiInDto.class
         );
 
-        TossVerificationCheckApiResponseDto responseDto = response.getBody();
+        TossVerificationCheckApiInDto responseDto = response.getBody();
         if(responseDto == null) {
             throw new RuntimeException("Empty response from Toss verification status check");
         }

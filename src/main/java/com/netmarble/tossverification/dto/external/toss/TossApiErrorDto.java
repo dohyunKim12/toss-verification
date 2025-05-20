@@ -1,4 +1,4 @@
-package com.netmarble.tossverification.dto.external.tossverification;
+package com.netmarble.tossverification.dto.external.toss;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -7,7 +7,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class TossVerificationApiErrorDto {
+public class TossApiErrorDto {
 
     private int errorType;
     private String errorCode;

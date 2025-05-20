@@ -4,11 +4,11 @@ import com.netmarble.tossverification.auth.TossCertSessionManager;
 import com.netmarble.tossverification.auth.TossTokenHolder;
 import com.netmarble.tossverification.client.TossVerificationClient;
 import com.netmarble.tossverification.config.TossAuthConstants;
-import com.netmarble.tossverification.dto.external.tossverification.TossVerificationApiResponseDto;
-import com.netmarble.tossverification.dto.external.tossverification.TossVerificationResultApiResponseDto;
-import com.netmarble.tossverification.dto.request.TossVerificationAppPushRequestDto;
-import com.netmarble.tossverification.dto.response.TossVerificationCheckResponseDto;
-import com.netmarble.tossverification.dto.response.TossVerificationResponseDto;
+import com.netmarble.tossverification.dto.external.toss.TossVerificationInitApiInDto;
+import com.netmarble.tossverification.dto.external.toss.TossVerificationResultApiInDto;
+import com.netmarble.tossverification.dto.internal.request.TossVerificationAppPushRequestDto;
+import com.netmarble.tossverification.dto.internal.response.TossVerificationCommonResponseDto;
+import com.netmarble.tossverification.dto.internal.response.TossVerificationInitResponseDto;
 import com.netmarble.tossverification.entity.NetmarbleIdentityVerification;
 import com.netmarble.tossverification.entity.TossVerificationInfo;
 import com.netmarble.tossverification.repository.NetmarbleIdentityRepository;
@@ -50,7 +50,7 @@ public class TossAuthService {
     // 1) get Access Token
     // 2) request Toss verification (본인확인 요청 API case2, sync)
     // 3) update DB with txId
-    public TossVerificationResponseDto requestVerification(TossVerificationAppPushRequestDto requestDto) {
+    public TossVerificationInitResponseDto requestVerification(TossVerificationAppPushRequestDto requestDto) {
         // Verify if the user exists in the DB
         NetmarbleIdentityVerification identityVerification = (NetmarbleIdentityVerification) netmarbleIdentityRepository.findByName(requestDto.getUsername())
                 .orElseThrow(() -> new RuntimeException("User not found with username: " + requestDto.getUsername()));
@@ -78,13 +78,13 @@ public class TossAuthService {
         requestBody.put("userBirthday", encryptedUserBirthday);
         requestBody.put("sessionKey", tossCertSession.getSessionKey());
         HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
-        ResponseEntity<TossVerificationApiResponseDto> response = restTemplate.exchange(
+        ResponseEntity<TossVerificationInitApiInDto> response = restTemplate.exchange(
                 TossAuthConstants.TOSS_CERT_DEFAULT_URL + "/sign/user/auth/id/request",
                 HttpMethod.POST,
                 requestEntity,
-                TossVerificationApiResponseDto.class
+                TossVerificationInitApiInDto.class
         );
-        TossVerificationApiResponseDto responseDto = response.getBody();
+        TossVerificationInitApiInDto responseDto = response.getBody();
 
         String txId = responseDto.getSuccess().getTxId();
         LocalDateTime requestedAt = OffsetDateTime.parse(responseDto.getSuccess().getRequestedDt()).toLocalDateTime();
@@ -105,7 +105,7 @@ public class TossAuthService {
             identityVerification.setVerifySeq(savedEntity.getTossVerifySeq());
             netmarbleIdentityRepository.save(identityVerification);
 
-            return new TossVerificationResponseDto(txId, null, null, null, null, requestedAt);
+            return new TossVerificationInitResponseDto(txId, null, null, null, null, requestedAt);
         } else {
             // If failed,
             throw new RuntimeException("Toss verification request failed: " + responseDto.getError().getReason());
@@ -117,7 +117,7 @@ public class TossAuthService {
     // 2) request Toss verification (본인확인 상태조회)
     // 3) update DB with status
     @Async("tossAuthCheckPollingExecutor")
-    public CompletableFuture<TossVerificationCheckResponseDto> pollVerificationStatus(String txId) {
+    public CompletableFuture<TossVerificationCommonResponseDto> pollVerificationStatus(String txId) {
         return CompletableFuture.supplyAsync(() -> {
             int maxAttempts = 100;
             int delayMs = 1000;
@@ -134,7 +134,7 @@ public class TossAuthService {
                         tossAuthRepository.save(tossVerificationInfo);
                         // Return to front-end
                         LocalDateTime requestedAt = tossVerificationInfo.getRequestedAt();
-                        return new TossVerificationCheckResponseDto("SUCCESS", txId, "COMPLETED", requestedAt, null);
+                        return new TossVerificationCommonResponseDto("SUCCESS", txId, "COMPLETED", requestedAt, null);
                     } else {
                         tossVerificationInfo.setStatus(status);
                         tossAuthRepository.save(tossVerificationInfo);
@@ -154,7 +154,7 @@ public class TossAuthService {
     // 1) get Access Token
     // 2) request Toss verification result (본인확인 결과조회)
     // 3) update DB with status, ci, di, signature
-    public TossVerificationCheckResponseDto getVerificationResult(String txId) {
+    public TossVerificationCommonResponseDto getVerificationResult(String txId) {
         // Verify if exists in the DB
         TossVerificationInfo tossVerificationInfo = tossAuthRepository.findByTxId(txId)
                 .orElseThrow(() -> new RuntimeException("Transaction not found with txId: " + txId));
@@ -173,13 +173,13 @@ public class TossAuthService {
         requestBody.put("txId", txId);
         requestBody.put("sessionKey", sessionKey);
         HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
-        ResponseEntity<TossVerificationResultApiResponseDto> response = restTemplate.exchange(
+        ResponseEntity<TossVerificationResultApiInDto> response = restTemplate.exchange(
                 TossAuthConstants.TOSS_CERT_DEFAULT_URL + "/sign/user/auth/id/result",
                 HttpMethod.POST,
                 requestEntity,
-                TossVerificationResultApiResponseDto.class
+                TossVerificationResultApiInDto.class
         );
-        TossVerificationResultApiResponseDto responseDto = response.getBody();
+        TossVerificationResultApiInDto responseDto = response.getBody();
 
         if(responseDto.getResultType().equals("SUCCESS")) {
             // If success,
@@ -191,7 +191,7 @@ public class TossAuthService {
             tossVerificationInfo.setUpdatedAt(LocalDateTime.now());
             tossAuthRepository.save(tossVerificationInfo);
 
-            return new TossVerificationCheckResponseDto("SUCCESS", txId, "COMPLETED", OffsetDateTime.parse(responseDto.getSuccess().getRequestedDt()).toLocalDateTime(), null); // same as check response
+            return new TossVerificationCommonResponseDto("SUCCESS", txId, "COMPLETED", OffsetDateTime.parse(responseDto.getSuccess().getRequestedDt()).toLocalDateTime(), null); // same as check response
         } else {
             // If failed,
             throw new RuntimeException("Toss verification request failed: " + responseDto.getError().getReason());
