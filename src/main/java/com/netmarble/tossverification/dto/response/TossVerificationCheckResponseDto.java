@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class TossVerificationCheckResponseDto {
+    private String resultType;
     private String txId;
     private String status;
     private LocalDateTime requestedAt;

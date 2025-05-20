@@ -38,3 +38,4 @@ out/
 
 ### logs files ###
 *.log
+logs/

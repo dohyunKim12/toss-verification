@@ -23,7 +23,7 @@ public class TossVerificationInfo {
     @Column(name = "di", length = 150)
     private String di;
 
-    @Column(name = "status", length = 30)
+    @Column(name = "status", length = 30) // REQUESTED, IN_PROGRESS, COMPLETED(본인확인 결과조회 응답 기준 Set), EXPIRED
     private String status;
 
     @Column(name = "signature", columnDefinition = "TEXT")

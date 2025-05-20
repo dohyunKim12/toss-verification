@@ -36,14 +36,8 @@ public class TossAuthController {
 //        return ResponseEntity.ok(results);
 //    }
 
-//    // 1. API to get Access Token (For Test)
-//    @Operation(summary = "Get Access Token(For Test)", description = "Retrieve access token using authorization code")
-//    @PostMapping("/token/refresh")
-//    public String refreshAccessToken() {
-//        return tossAuthService.issueAccessToken();
-//    }
     // User create
-    // 1. API to create user (For Test)
+    // API to create user (For Test)
     @PostMapping("/user/create")
     public ResponseEntity<String> createUser(@RequestBody CreateUserDto dto) {
         String result = userService.createUser(dto);
@@ -69,14 +63,12 @@ public class TossAuthController {
                     logger.error("Polling failed", ex);
                     return ResponseEntity.status(HttpStatus.REQUEST_TIMEOUT).build();
                 });
-
-//        return tossAuthService.pollVerificationStatus(txId)
-//                .thenApply(response -> ResponseEntity.ok(response));
     }
 
-//    // 3. 결과 조회
-//    @GetMapping("/auth/result")
-//    public TossAuthResultDto getVerificationResult(@RequestParam("txId") String txId) {
-//        return tossAuthService.fetchVerificationResult(txId);
-//    }
+    // 3. 결과 조회
+    @GetMapping("/auth/result")
+    public ResponseEntity<TossVerificationCheckResponseDto> getVerificationResult(@RequestParam("txId") String txId) {
+        TossVerificationCheckResponseDto result = tossAuthService.getVerificationResult(txId);
+        return ResponseEntity.ok(result);
+    }
 }
